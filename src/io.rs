@@ -1,4 +1,4 @@
-use std::io::{self, Write, Error};
+use std::io::{self, Error, Write};
 
 fn question_user(question: &str, prompt: &str) -> Result<(), Error> {
     println!("{}", question);
@@ -17,4 +17,3 @@ pub fn initial_prompt() -> Result<String, Error> {
     question_user("Enter your polynomial equation:", "> ")?;
     get_user_input()
 }
-

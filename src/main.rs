@@ -1,7 +1,6 @@
 mod io;
 use io::initial_prompt;
 
-
 fn computorv1() -> String {
     let equation: String;
 
