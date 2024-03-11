@@ -1,8 +1,8 @@
 use std::io::{self, Error, Write};
 
 fn question_user(question: &str, prompt: &str) -> Result<(), Error> {
-    println!("{}", question);
-    print!("{}", prompt);
+    println!("{question}");
+    print!("{prompt}");
     io::stdout().flush()?;
     Ok(())
 }
