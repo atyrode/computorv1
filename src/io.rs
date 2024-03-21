@@ -1,19 +1,27 @@
-use std::io::{self, Error, Write};
+use std::io::{stdin, stdout, Write};
 
-fn question_user(question: &str, prompt: &str) -> Result<(), Error> {
+use crate::Error;
+
+/// # Errors
+/// This function will return an error if it fails flush stdout.
+fn question_user(question: &str, prompt: &str) -> Result<(), Box<dyn Error>> {
     println!("{question}");
     print!("{prompt}");
-    io::stdout().flush()?;
+    stdout().flush()?;
     Ok(())
 }
 
-fn get_user_input() -> Result<String, Error> {
+/// # Errors
+/// This function will return an error if it fails to read ustdin.
+fn get_user_input() -> Result<String, Box<dyn Error>> {
     let mut input = String::new();
-    io::stdin().read_line(&mut input)?;
+    stdin().read_line(&mut input)?;
     Ok(input)
 }
 
-pub fn initial_prompt() -> Result<String, Error> {
+/// # Errors
+/// This function will return an error if it fails to read user input or print and flush to stdout.
+pub fn initial_prompt() -> Result<String, Box<dyn Error>> {
     question_user("Enter your polynomial equation:", "> ")?;
     get_user_input()
 }
