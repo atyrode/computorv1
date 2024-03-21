@@ -27,7 +27,6 @@ fn get_terms(side: &str) -> Result<Vec<Term>, Box<dyn Error>> {
         if let Some(exponent) = cap.name("exponent") {
             term.power = exponent.as_str().parse::<i32>()?;
         }
-
         terms.push(term);
     }
     Ok(terms)
@@ -49,6 +48,5 @@ pub fn get_equation(user_input: &str) -> Result<Equation, Box<dyn Error>> {
     equation.left_side = get_terms(sides[0])?;
     equation.right_side = get_terms(sides[1])?;
 
-    println!("{equation}");
     Ok(equation)
 }

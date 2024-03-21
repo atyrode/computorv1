@@ -21,24 +21,28 @@ impl Equation {
 
 impl std::fmt::Display for Equation {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        fn parse(side: &Vec<Term>) -> String {
-            let mut result = String::new();
-            for term in side {
-                if term.coefficient <= 0.0 {
-                    result.push_str(&format!("- {}", term.coefficient.abs()));
-                } else {
-                    result.push_str(&format!("+ {term} "));
-                }
-            }
-            result
-        }
+        let left_side: Vec<String> = self.left_side.iter().map(format_term).collect();
+        let right_side: Vec<String> = self.right_side.iter().map(format_term).collect();
+
+        let ls = left_side.join(" ");
+        let rs = right_side.join(" ");
 
         write!(
             f,
             "{} = {}",
-            parse(&self.left_side),
-            parse(&self.right_side)
+            ls.trim_start_matches('+').trim_start(),
+            rs.trim_start_matches('+').trim_start()
         )
+    }
+}
+
+fn format_term(term: &Term) -> String {
+    match term.coefficient {
+        c if c == 0.0 => String::new(), // Skip zero coefficients
+        c if (c - 1.0).abs() < f64::EPSILON && term.power != 0 => format!("+ X^{}", term.power),
+        c if (c + 1.0).abs() < f64::EPSILON && term.power != 0 => format!("- X^{}", term.power),
+        c if c < 0.0 => format!("{} * X^{}", c, term.power),
+        _ => format!("+ {} * X^{}", term.coefficient, term.power),
     }
 }
 
