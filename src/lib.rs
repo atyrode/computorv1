@@ -1,74 +1,104 @@
 pub mod io;
+pub mod solve;
+pub use solve::solve_equation;
+
 pub mod parse;
 
 pub use std::error::Error;
+pub use std::fmt::{Debug, Display, Formatter, Result};
 
-#[derive(Default)]
 pub struct Equation {
-    pub left_side: Vec<Term>,
-    pub right_side: Vec<Term>,
+    left: Vec<Term>,
+    right: Vec<Term>,
 }
 
 impl Equation {
-    #[must_use]
-    pub fn new(left_side: Vec<Term>, right_side: Vec<Term>) -> Self {
-        Self {
-            left_side,
-            right_side,
+    pub fn underline_term(&self, term: &Term) -> String {
+        let mut underline = String::new();
+
+        for _ in 0..term.to_string().len() {
+            underline.push('-');
         }
+        underline
     }
 }
 
-impl std::fmt::Display for Equation {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let left_side: Vec<String> = self.left_side.iter().map(format_term).collect();
-        let right_side: Vec<String> = self.right_side.iter().map(format_term).collect();
+impl Display for Equation {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        fn format_terms(terms: &[Term]) -> String {
+            let fmt_terms = terms
+                .iter()
+                .map(|term| format!("{term}"))
+                .collect::<Vec<String>>()
+                .join(" ");
 
-        let ls = left_side.join(" ");
-        let rs = right_side.join(" ");
+            if let Some(fmt_terms) = fmt_terms.strip_prefix('+') {
+                return fmt_terms.to_string();
+            } else if fmt_terms.starts_with("- ") {
+                return fmt_terms.replacen("- ", "-", 1);
+            }
+            fmt_terms
+        }
 
         write!(
             f,
             "{} = {}",
-            ls.trim_start_matches('+').trim_start(),
-            rs.trim_start_matches('+').trim_start()
+            format_terms(&self.left),
+            format_terms(&self.right)
         )
     }
 }
 
-fn format_term(term: &Term) -> String {
-    match term.coefficient {
-        c if c == 0.0 => String::new(), // Skip zero coefficients
-        c if (c - 1.0).abs() < f64::EPSILON && term.power != 0 => format!("+ X^{}", term.power),
-        c if (c + 1.0).abs() < f64::EPSILON && term.power != 0 => format!("- X^{}", term.power),
-        c if c < 0.0 => format!("{} * X^{}", c, term.power),
-        _ => format!("+ {} * X^{}", term.coefficient, term.power),
-    }
+struct Term {
+    pub coefficient: Option<Coefficient>,
+    pub variable: Option<Variable>,
 }
 
-pub struct Term {
-    pub coefficient: f64,
-    pub power: i32,
-}
-
-impl Term {
-    #[must_use]
-    pub const fn new(coefficient: f64, power: i32) -> Self {
-        Self { coefficient, power }
-    }
-}
-
-impl std::default::Default for Term {
-    fn default() -> Self {
-        Self {
-            coefficient: 0.0,
-            power: 0,
+impl Display for Term {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match (&self.coefficient, &self.variable) {
+            (Some(coefficient), Some(variable)) => write!(f, "{} * {}", coefficient, variable),
+            (Some(coefficient), None) => write!(f, "{}", coefficient),
+            (None, Some(variable)) => write!(f, "{}", variable),
+            (None, None) => write!(f, ""),
         }
     }
 }
 
-impl std::fmt::Display for Term {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{} * X^{}", self.coefficient, self.power)
+struct Coefficient {
+    value: f64,
+    power: Exponent,
+}
+
+impl Display for Coefficient {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}{}", self.value, self.power)
+    }
+}
+
+struct Variable {
+    negated: bool,
+    power: Exponent,
+}
+
+impl Display for Variable {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, 
+            "{}X{}",
+            if self.negated { "-" } else { "" },
+            self.power)
+    }
+}
+
+struct Exponent {
+    value: Option<f64>,
+}
+
+impl Display for Exponent {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match self.value {
+            Some(value) => write!(f, "^{}", value),
+            None => write!(f, ""),
+        }
     }
 }
